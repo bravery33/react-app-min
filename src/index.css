@@ -1,0 +1,20 @@
+/* index.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  /* 폰트 스타일은 App.css에서 웹 폰트로 관리하고 있으므로 여기서는 삭제합니다.
+    -webkit-font-smoothing과 -moz-osx-font-smoothing은 
+    텍스트를 부드럽게 표현해주는 좋은 속성이므로 남겨둡니다.
+  */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* code 태그에 대한 기본 스타일은 전역으로 유지해도 좋습니다. */
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}

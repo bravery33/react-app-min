@@ -1,0 +1,76 @@
+/* --- App.css --- */
+
+/* 1. 구글 웹 폰트 불러오기 및 기본 스타일 설정 */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
+/* :root에서 사이트의 메인 색상들을 변수로 관리하면 나중에 색상 변경이 쉬워집니다. */
+:root {
+  --color-background: #111827; /* 배경색 (gray-900) */
+  --color-surface: #1f2937;    /* 카드 배경색 (gray-800) */
+  --color-primary: #8b5cf6;    /* 보라색 포인트 */
+  --color-text: #f9fafb;       /* 기본 텍스트 색상 */
+  --color-text-muted: #9ca3af; /* 연한 텍스트 색상 */
+}
+
+body {
+  background-color: var(--color-background);
+  font-family: 'Poppins', 'Noto Sans KR', sans-serif;
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+/* 2. 커스텀 스크롤바 디자인 (웹킷 기반 브라우저: Chrome, Safari 등) */
+body::-webkit-scrollbar {
+  width: 8px;
+}
+body::-webkit-scrollbar-track {
+  background: var(--color-surface);
+}
+body::-webkit-scrollbar-thumb {
+  background-color: var(--color-primary);
+  border-radius: 10px;
+  border: 2px solid var(--color-surface);
+}
+
+
+/* 3. 영화 카드에 '네온 글로우' 호버 효과 추가 */
+/* 기존 Tailwind 그림자 효과와 함께 작동하여 더 멋진 효과를 냅니다. */
+.group:hover {
+  box-shadow: 0 0 15px 0px rgba(139, 92, 246, 0.5);
+  border-color: var(--color-primary);
+}
+
+
+/* 4. 로딩 스피너 애니메이션 커스터마이징 */
+/* 기존의 단순한 spin을 대체할 새로운 애니메이션을 정의합니다. */
+@keyframes pulse-loader {
+  0% {
+    transform: rotate(0deg);
+    border-color: var(--color-primary);
+  }
+  50% {
+    transform: rotate(180deg);
+    border-color: #a78bfa; /* 더 밝은 보라색 */
+  }
+  100% {
+    transform: rotate(360deg);
+    border-color: var(--color-primary);
+  }
+}
+
+/* App.js의 LoadingSpinner 컴포넌트에 적용될 스타일 */
+/* 기존 Tailwind 클래스 'animate-spin'을 이 새로운 애니메이션으로 덮어씁니다. */
+.animate-spin {
+  animation: pulse-loader 1.5s linear infinite;
+}
+
+
+/* 5. 섹션 제목(h2) 스타일 개선 */
+h2 {
+  /* 그라디언트 텍스트 효과 */
+  background: linear-gradient(90deg, var(--color-primary), #a78bfa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-fill-color: transparent;
+}
