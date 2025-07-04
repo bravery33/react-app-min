@@ -7,6 +7,7 @@ import MovieDetail from './components/MovieDetail/MovieDetail';
 import LoadingSpinner from './components/LoadingSpinner/LoadingSpinner';
 import ErrorMessage from './components/ErrorMessage/ErrorMessage';
 import Footer from './components/Footer/Footer';
+import SearchResults from './components/SearchResults/SearchResults';
 
 const TMDB_API_KEY = process.env.REACT_APP_TMDB_API_KEY;
 const KOBIS_API_KEY = process.env.REACT_APP_KOBIS_API_KEY;
@@ -14,6 +15,7 @@ const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 const KOBIS_BASE_URL = "https://www.kobis.or.kr/kobisopenapi/webservice/rest";
 
 export default function App() {
+  // --- 상태 관리 ---
   const [reReleaseMovies, setReReleaseMovies] = useState([]);
   const [upcomingReReleases, setUpcomingReReleases] = useState([]);
   const [boxOfficeMovies, setBoxOfficeMovies] = useState([]);
@@ -22,15 +24,38 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [tmdbGenres, setTmdbGenres] = useState({});
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [favorites, setFavorites] = useState([]);
 
+  // --- useEffect: 앱 시작 시 데이터 로딩 ---
   useEffect(() => {
+    // 1. 즐겨찾기 데이터를 localStorage에서 불러옵니다.
+    try {
+      const storedFavorites = JSON.parse(localStorage.getItem('movie-favorites'));
+      if (Array.isArray(storedFavorites)) {
+        setFavorites(storedFavorites);
+      }
+    } catch (error) {
+      console.error("Failed to parse favorites from localStorage", error);
+      setFavorites([]);
+    }
+
+    // 2. API 키를 확인합니다.
     if (!TMDB_API_KEY || !KOBIS_API_KEY) {
       setError("API 키가 .env 파일에 설정되지 않았습니다.");
       setIsLoading(false);
       return;
     }
 
+    // 3. 메인 영화 데이터를 불러오는 함수를 정의하고 호출합니다.
     const fetchAllMovieData = async () => {
+      // 검색어가 없을 때만 메인 데이터를 로딩합니다.
+      if (searchQuery) {
+        setIsLoading(false);
+        return;
+      }
+
       setIsLoading(true);
       setError(null);
       try {
@@ -54,7 +79,8 @@ export default function App() {
 
         const enrichedBoxOfficeMovies = await Promise.all(
           dailyBoxOfficeList.map(async (movie) => {
-            const tmdbSearchResponse = await fetch(`${TMDB_BASE_URL}/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(movie.movieNm)}&language=ko-KR`);
+            const year = movie.openDt ? movie.openDt.substring(0, 4) : null;
+            const tmdbSearchResponse = await fetch(`${TMDB_BASE_URL}/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(movie.movieNm)}&language=ko-KR&primary_release_year=${year}`);
             const tmdbSearchData = await tmdbSearchResponse.json();
             const tmdbMovie = tmdbSearchData.results[0];
             return { ...movie, ...tmdbMovie };
@@ -70,6 +96,7 @@ export default function App() {
           const formattedDateStr = `${dateStr.slice(0, 4)}-${dateStr.slice(4, 6)}-${dateStr.slice(6, 8)}`;
           return new Date(formattedDateStr) < fiveYearsAgo;
         });
+
         setReReleaseMovies(reReleases);
         setBoxOfficeMovies(enrichedBoxOfficeMovies);
 
@@ -99,8 +126,53 @@ export default function App() {
     };
 
     fetchAllMovieData();
-  }, []);
+  }, [searchQuery]); // searchQuery가 바뀔 때마다 이 effect를 재실행할지 결정
 
+  // --- 즐겨찾기 데이터 저장 ---
+  const saveToLocalStorage = (items) => {
+    localStorage.setItem('movie-favorites', JSON.stringify(items));
+  };
+
+  const addFavoriteMovie = (movie) => {
+    const newFavoriteList = [...favorites, movie];
+    setFavorites(newFavoriteList);
+    saveToLocalStorage(newFavoriteList);
+  };
+
+  const removeFavoriteMovie = (movie) => {
+    const newFavoriteList = favorites.filter((favorite) => favorite.id !== movie.id);
+    setFavorites(newFavoriteList);
+    saveToLocalStorage(newFavoriteList);
+  };
+
+  // --- 검색 기능 함수 ---
+  const searchMovies = async (query) => {
+    if (!query) return;
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(
+        `${TMDB_BASE_URL}/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}&language=ko-KR`
+      );
+      if (!response.ok) throw new Error('검색 결과를 가져오는데 실패했습니다.');
+      const data = await response.json();
+      setSearchResults(data.results);
+    } catch (err) {
+      setError(err.message);
+    }
+    setIsLoading(false);
+  };
+
+  const handleSearch = (query) => {
+    setSearchQuery(query);
+    if (query) {
+      searchMovies(query);
+    } else {
+      setSearchResults([]);
+    }
+  };
+
+  // --- 렌더링 로직 ---
   if (isLoading) return <LoadingSpinner />;
   if (error) return <ErrorMessage message={error} />;
   if (selectedMovie) return (
@@ -109,17 +181,31 @@ export default function App() {
       onBack={() => setSelectedMovie(null)}
       apiKey={TMDB_API_KEY}
       baseUrl={TMDB_BASE_URL}
+      favorites={favorites}
+      onAddFavorite={addFavoriteMovie}
+      onRemoveFavorite={removeFavoriteMovie}
     />
   );
 
   return (
     <div className="App">
-      <Header />
+      <Header onSearch={handleSearch} />
       <main className="container mx-auto px-4 py-8">
-        <MovieSection title="재개봉 화제작" movies={reReleaseMovies} onMovieSelect={setSelectedMovie} genres={tmdbGenres} />
-        <MovieSection title="재개봉 예정작" movies={upcomingReReleases} onMovieSelect={setSelectedMovie} genres={tmdbGenres} />
-        <MovieSection title="박스오피스 순위" movies={boxOfficeMovies} onMovieSelect={setSelectedMovie} isRanked={true} genres={tmdbGenres} />
-        <MovieSection title="상영 예정작" movies={upcomingMovies} onMovieSelect={setSelectedMovie} genres={tmdbGenres} />
+        {searchQuery ? (
+          <SearchResults
+            movies={searchResults}
+            onMovieSelect={setSelectedMovie}
+            genres={tmdbGenres}
+          />
+        ) : (
+          <>
+            <MovieSection title="즐겨찾기" movies={favorites} onMovieSelect={setSelectedMovie} genres={tmdbGenres} />
+            <MovieSection title="재개봉 화제작" movies={reReleaseMovies} onMovieSelect={setSelectedMovie} genres={tmdbGenres} />
+            <MovieSection title="재개봉 예정작" movies={upcomingReReleases} onMovieSelect={setSelectedMovie} genres={tmdbGenres} />
+            <MovieSection title="박스오피스 순위" movies={boxOfficeMovies} onMovieSelect={setSelectedMovie} isRanked={true} genres={tmdbGenres} />
+            <MovieSection title="상영 예정작" movies={upcomingMovies} onMovieSelect={setSelectedMovie} genres={tmdbGenres} />
+          </>
+        )}
       </main>
       <Footer />
     </div>
