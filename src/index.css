@@ -1,19 +1,45 @@
-/* index.css */
+/* index.css (수정 후) */
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-body {
-  margin: 0;
-  /* 폰트 스타일은 App.css에서 웹 폰트로 관리하고 있으므로 여기서는 삭제합니다.
-    -webkit-font-smoothing과 -moz-osx-font-smoothing은 
-    텍스트를 부드럽게 표현해주는 좋은 속성이므로 남겨둡니다.
-  */
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+/* :root 변수는 여기에 유지합니다 */
+:root {
+  --color-background: #111827;
+  --color-surface: #1f2937;
+  --color-primary: #8b5cf6;
+  --color-text: #f9fafb;
+  --color-text-muted: #9ca3af;
 }
 
-/* code 태그에 대한 기본 스타일은 전역으로 유지해도 좋습니다. */
+/* body 스타일을 하나로 합칩니다 */
+body {
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--color-background);
+  font-family: 'Poppins', 'Noto Sans KR', sans-serif;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+body::-webkit-scrollbar {
+  width: 8px;
+}
+
+body::-webkit-scrollbar-track {
+  background: var(--color-surface);
+}
+
+body::-webkit-scrollbar-thumb {
+  background-color: var(--color-primary);
+  border-radius: 10px;
+  border: 2px solid var(--color-surface);
+}
+
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;

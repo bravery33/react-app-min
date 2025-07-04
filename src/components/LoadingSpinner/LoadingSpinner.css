@@ -1,0 +1,9 @@
+/* 로딩 스피너 애니메이션 커스터마이징 */
+@keyframes pulse-loader {
+  0% { transform: rotate(0deg); border-color: var(--color-primary); }
+  50% { transform: rotate(180deg); border-color: #a78bfa; }
+  100% { transform: rotate(360deg); border-color: var(--color-primary); }
+}
+.animate-spin {
+  animation: pulse-loader 1.5s linear infinite;
+}
