@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import './Header.css';
 
-// onSearch prop을 받아옵니다.
 const Header = ({ onSearch }) => {
   const [query, setQuery] = useState('');
 
@@ -10,7 +9,7 @@ const Header = ({ onSearch }) => {
   };
 
   const handleSubmit = (e) => {
-    e.preventDefault(); // form의 기본 새로고침 동작을 막습니다.
+    e.preventDefault();
     onSearch(query);
   };
 

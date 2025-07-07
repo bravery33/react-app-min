@@ -1,10 +1,8 @@
-/* 예고편 영상 비율 스타일 */
 .aspect-w-16 {
   position: relative;
-  padding-bottom: 56.25%; /* 16:9 비율 */
+  padding-bottom: 56.25%;
 }
 .aspect-h-9 {
-  /* 이 클래스는 패딩을 설정하기 위해 사용됩니다. */
 }
 .aspect-w-16 > iframe {
   position: absolute;
@@ -14,7 +12,6 @@
   left: 0;
 }
 
-/* 상세 페이지의 h3 제목 스타일 */
 .my-12 h3 {
   background: linear-gradient(90deg, var(--color-primary), #a78bfa);
   -webkit-background-clip: text;

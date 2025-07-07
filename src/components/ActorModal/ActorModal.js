@@ -1,5 +1,3 @@
-// src/components/ActorModal/ActorModal.js
-
 import React, { useState, useEffect } from 'react';
 import LoadingSpinner from '../LoadingSpinner/LoadingSpinner';
 import './ActorModal.css';
@@ -11,13 +9,11 @@ const ActorModal = ({ actorId, apiKey, onClose }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // actorId가 없으면 아무 작업도 하지 않습니다.
     if (!actorId) return;
 
     const fetchActorDetails = async () => {
       setIsLoading(true);
       try {
-        // 배우 상세 정보와 출연 영화 목록을 동시에 요청합니다.
         const [detailsRes, creditsRes] = await Promise.all([
           fetch(`${TMDB_BASE_URL}/person/${actorId}?api_key=${apiKey}&language=ko-KR`),
           fetch(`${TMDB_BASE_URL}/person/${actorId}/movie_credits?api_key=${apiKey}&language=ko-KR`)
@@ -37,7 +33,6 @@ const ActorModal = ({ actorId, apiKey, onClose }) => {
     fetchActorDetails();
   }, [actorId, apiKey]);
   
-  // 모달 외부를 클릭했을 때 닫히는 이벤트 핸들러
   const handleOverlayClick = (e) => {
     if (e.target.id === "modal-overlay") {
       onClose();

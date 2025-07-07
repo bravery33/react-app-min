@@ -1,12 +1,9 @@
-/* index.css (수정 후) */
-
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* :root 변수는 여기에 유지합니다 */
 :root {
   --color-background: #111827;
   --color-surface: #1f2937;
@@ -15,7 +12,6 @@
   --color-text-muted: #9ca3af;
 }
 
-/* body 스타일을 하나로 합칩니다 */
 body {
   margin: 0;
   -webkit-font-smoothing: antialiased;

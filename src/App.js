@@ -15,7 +15,6 @@ const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 const KOBIS_BASE_URL = "https://www.kobis.or.kr/kobisopenapi/webservice/rest";
 
 export default function App() {
-  // --- 상태 관리 ---
   const [reReleaseMovies, setReReleaseMovies] = useState([]);
   const [upcomingReReleases, setUpcomingReReleases] = useState([]);
   const [boxOfficeMovies, setBoxOfficeMovies] = useState([]);
@@ -28,9 +27,7 @@ export default function App() {
   const [searchResults, setSearchResults] = useState([]);
   const [favorites, setFavorites] = useState([]);
 
-  // --- useEffect: 앱 시작 시 데이터 로딩 ---
   useEffect(() => {
-    // 1. 즐겨찾기 데이터를 localStorage에서 불러옵니다.
     try {
       const storedFavorites = JSON.parse(localStorage.getItem('movie-favorites'));
       if (Array.isArray(storedFavorites)) {
@@ -41,16 +38,13 @@ export default function App() {
       setFavorites([]);
     }
 
-    // 2. API 키를 확인합니다.
     if (!TMDB_API_KEY || !KOBIS_API_KEY) {
       setError("API 키가 .env 파일에 설정되지 않았습니다.");
       setIsLoading(false);
       return;
     }
 
-    // 3. 메인 영화 데이터를 불러오는 함수를 정의하고 호출합니다.
     const fetchAllMovieData = async () => {
-      // 검색어가 없을 때만 메인 데이터를 로딩합니다.
       if (searchQuery) {
         setIsLoading(false);
         return;
@@ -80,21 +74,42 @@ export default function App() {
         const enrichedBoxOfficeMovies = await Promise.all(
           dailyBoxOfficeList.map(async (movie) => {
             const year = movie.openDt ? movie.openDt.substring(0, 4) : null;
-            const tmdbSearchResponse = await fetch(`${TMDB_BASE_URL}/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(movie.movieNm)}&language=ko-KR&primary_release_year=${year}`);
-            const tmdbSearchData = await tmdbSearchResponse.json();
+
+            let searchUrl = `${TMDB_BASE_URL}/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(movie.movieNm)}&language=ko-KR`;
+            if (year) {
+              searchUrl += `&primary_release_year=${year}`;
+            }
+
+            let tmdbSearchResponse = await fetch(searchUrl);
+            let tmdbSearchData = await tmdbSearchResponse.json();
+
+            if (tmdbSearchData.results.length === 0 && year) {
+              const fallbackSearchUrl = `${TMDB_BASE_URL}/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(movie.movieNm)}&language=ko-KR`;
+              tmdbSearchResponse = await fetch(fallbackSearchUrl);
+              tmdbSearchData = await tmdbSearchResponse.json();
+            }
+
             const tmdbMovie = tmdbSearchData.results[0];
             return { ...movie, ...tmdbMovie };
           })
         );
+        console.log("TMDb 정보가 합쳐진 후의 박스오피스 목록:", enrichedBoxOfficeMovies);
 
         const fiveYearsAgo = new Date();
         fiveYearsAgo.setFullYear(fiveYearsAgo.getFullYear() - 5);
 
         const reReleases = enrichedBoxOfficeMovies.filter(movie => {
           if (!movie.openDt) return false;
-          const dateStr = movie.openDt;
-          const formattedDateStr = `${dateStr.slice(0, 4)}-${dateStr.slice(4, 6)}-${dateStr.slice(6, 8)}`;
-          return new Date(formattedDateStr) < fiveYearsAgo;
+
+          let dateToCompare;
+          if (movie.openDt.includes('-')) {
+            dateToCompare = new Date(movie.openDt);
+          } else {
+            const dateStr = movie.openDt;
+            const formattedDateStr = `${dateStr.slice(0, 4)}-${dateStr.slice(4, 6)}-${dateStr.slice(6, 8)}`;
+            dateToCompare = new Date(formattedDateStr);
+          }
+          return dateToCompare < fiveYearsAgo;
         });
 
         setReReleaseMovies(reReleases);
@@ -126,9 +141,8 @@ export default function App() {
     };
 
     fetchAllMovieData();
-  }, [searchQuery]); // searchQuery가 바뀔 때마다 이 effect를 재실행할지 결정
+  }, [searchQuery]);
 
-  // --- 즐겨찾기 데이터 저장 ---
   const saveToLocalStorage = (items) => {
     localStorage.setItem('movie-favorites', JSON.stringify(items));
   };
@@ -145,7 +159,6 @@ export default function App() {
     saveToLocalStorage(newFavoriteList);
   };
 
-  // --- 검색 기능 함수 ---
   const searchMovies = async (query) => {
     if (!query) return;
     setIsLoading(true);
@@ -172,7 +185,6 @@ export default function App() {
     }
   };
 
-  // --- 렌더링 로직 ---
   if (isLoading) return <LoadingSpinner />;
   if (error) return <ErrorMessage message={error} />;
   if (selectedMovie) return (
